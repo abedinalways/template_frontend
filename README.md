@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Enterprise Architecture Template
 
-## Getting Started
+A production-ready, scalable **Next.js 16 (App Router)** template engineered with **Redux Toolkit**, **RTK Query (Mutex Reauth)**, **Authentication (Proactive Silent Refresh)**, **Socket.io-Client**, and a clean **`src/`** directory layout.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Key Features & Best Practices
+
+1. **Pure Redux Reducer Pattern**:
+   - `authSlice.ts` contains only pure state mutations.
+   - All cookie access and storage are decoupled into `tokenService.ts`.
+
+2. **RTK Query Mutex Re-authentication**:
+   - Lightweight mutex in `baseApi.ts` blocks duplicate refresh attempts during parallel 401 calls.
+   - Pending queries wait and auto-retry once the fresh token is received.
+
+3. **Proactive Silent Token Refresh**:
+   - Calculates remaining token lifetime and schedules a refresh 60 seconds before expiration.
+   - Automatically checks and syncs token freshness when browser tabs wake from sleep (`visibilitychange` and `focus` events).
+
+4. **Socket.io Client Singleton & Lifecycle**:
+   - Singleton client manager (`socketClient.ts`) attaches JWT dynamically.
+   - `SocketProvider` connects on login and disconnects on logout.
+   - `useSocketEvent` hook guarantees automatic event listener cleanup on component unmount.
+
+5. **Edge Route Protection (`middleware.ts`)**:
+   - Edge-level RBAC for `(auth)`, `(user)`, and `(admin)` routes with automatic return URL retention.
+
+6. **Unified Clean Structure**:
+   - Standardized `src/` layout without duplicate or conflicting directories.
+
+---
+
+## 📁 Directory Structure
+
+```text
+src/
+├── app/
+│   ├── (admin)/
+│   │   └── admin-dashboard/page.tsx # Admin control panel (RBAC protected)
+│   ├── (auth)/
+│   │   ├── login/page.tsx           # Login page with 1-click demo shortcuts
+│   │   └── register/page.tsx        # Registration page
+│   ├── (user)/
+│   │   ├── dashboard/page.tsx       # User diagnostics & socket playground
+│   │   └── profile/page.tsx         # User profile details
+│   ├── layout.tsx                   # Master layout with AppProviders & Navbar
+│   ├── page.tsx                     # Landing page & feature blueprint
+│   └── globals.css                  # Global Tailwind CSS styles
+├── middleware.ts                    # Edge-level route protection & redirect guard
+├── constants/
+│   ├── env.ts                       # Environment variable contracts
+│   └── routes.ts                    # Application route paths & role definitions
+├── lib/
+│   └── utils.ts                     # cn helper and safe API error extractor
+├── providers/
+│   ├── AppProviders.tsx             # Master composition provider
+│   ├── AuthProvider.tsx             # Auth hydration & silent refresh timer
+│   └── SocketProvider.tsx           # Socket.io connection lifecycle manager
+├── redux/
+│   ├── api/
+│   │   ├── baseApi.ts               # RTK Query baseApi with Mutex re-auth
+│   │   └── tagTypes.ts              # Central cache tags
+│   ├── features/
+│   │   ├── auth/                    # Pure auth slice, selectors & injected API
+│   │   └── notification/            # Real-time notification slice
+│   ├── store.ts                     # Typed Redux store
+│   ├── hooks.ts                     # Typed useAppDispatch, useAppSelector
+│   └── StoreProvider.tsx            # Redux client component wrapper
+├── services/
+│   ├── auth/
+│   │   ├── tokenService.ts          # Pure cookie manager & JWT decoder
+│   │   └── silentRefresh.ts         # Proactive refresh scheduler
+│   └── socket/
+│       ├── socketClient.ts          # Singleton Socket.io client manager
+│       └── useSocket.ts             # Custom hook with auto cleanup
+├── types/
+│   ├── api.ts                       # IApiResponse, IPaginationMeta, IApiError
+│   ├── auth.ts                      # IUser, UserRole, IAuthState, IJwtPayload
+│   ├── socket.ts                    # ServerToClientEvents, ClientToServerEvents
+│   └── index.ts                     # Central barrel export
+└── components/
+    ├── layout/Navbar.tsx            # Header with live socket beacon & auth menu
+    └── ui/                          # Reusable UI primitives (Button, Input, Card, Badge)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Install Dependencies
+```bash
+pnpm install
+```
 
-## Learn More
+### 2. Configure Environment Variables
+Copy `.env.example` to `.env.local`:
+```bash
+cp .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Run Development Server
+```bash
+pnpm dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔐 Demo Credentials
+On the Login page (`/login`), you can use the 1-click demo buttons:
+* **User Mode**: Logs in as standard user and routes to `/dashboard`.
+* **Admin Mode**: Logs in as administrator and grants access to `/admin-dashboard`.
+# template_frontend
