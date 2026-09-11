@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -17,6 +17,14 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Prevents calling setState after the component unmounts (e.g. fast navigation)
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) {
@@ -26,6 +34,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     setTimeout(() => {
+      if (!isMountedRef.current) return;
       setIsLoading(false);
       toast.success("Account created successfully! Please sign in.");
       router.push(ROUTES.LOGIN);

@@ -9,9 +9,10 @@ import {
   selectIsAuthenticated,
 } from "@/redux/features/auth/authSelectors";
 import { logOut } from "@/redux/features/auth/authSlice";
+import { baseApi } from "@/redux/api/baseApi";
 import { tokenService } from "@/services/auth/tokenService";
 import { useSocketContext } from "@/providers/SocketProvider";
-import { ROUTES } from "@/constants/routes";
+import { ROUTES, USER_ROLES } from "@/constants/routes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -30,6 +31,8 @@ export function Navbar() {
     tokenService.clearAuthCookies();
     // 2. Clear pure Redux state
     dispatch(logOut());
+    // 3. Purge all RTK Query cache — prevents previous user's data leaking to next session
+    dispatch(baseApi.util.resetApiState());
     toast.success("Logged out successfully");
     router.push(ROUTES.LOGIN);
   };
@@ -54,7 +57,7 @@ export function Navbar() {
                 <Link href={ROUTES.USER_DASHBOARD} className="hover:text-neutral-900 dark:hover:text-white transition-colors">
                   Dashboard
                 </Link>
-                {(role === "admin" || role === "super_admin") && (
+                {(role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN) && (
                   <Link href={ROUTES.ADMIN_DASHBOARD} className="flex items-center gap-1 text-amber-600 dark:text-amber-400 hover:underline">
                     <Shield className="h-3.5 w-3.5" />
                     Admin Panel
@@ -89,7 +92,7 @@ export function Navbar() {
               </div>
 
               {/* User Role Badge */}
-              <Badge variant={role === "admin" || role === "super_admin" ? "warning" : "default"}>
+              <Badge variant={role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN ? "warning" : "default"}>
                 {role || "user"}
               </Badge>
 

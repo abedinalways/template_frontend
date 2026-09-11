@@ -40,7 +40,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
   // 2. Proactive Silent Refresh Timer & Tab Visibility/Focus Listener
   useEffect(() => {
-    if (!token || typeof token !== "string") {
+    if (!token) {
       if (refreshTimerRef.current) {
         clearTimeout(refreshTimerRef.current);
         refreshTimerRef.current = null;
@@ -66,10 +66,12 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     scheduleRefresh();
 
     // Check token freshness when tab returns to focus or laptop wakes up
-    const handleActivityCheck = () => {
+    const handleActivityCheck = async () => {
       if (document.visibilityState === "visible") {
         if (tokenService.isTokenExpired(token, 60)) {
-          executeSilentRefresh(dispatch, refreshToken);
+          const success = await executeSilentRefresh(dispatch, refreshToken);
+          // Reset the countdown timer so the next scheduled refresh is correct
+          if (success) scheduleRefresh();
         }
       }
     };

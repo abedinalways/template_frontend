@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { IAuthState, IUser, UserRole } from "@/types/auth";
 
 const initialState: IAuthState = {
-  token: false, // false indicates auth is not yet initialized from client cookies/storage
+  token: null, // null = not yet checked (see isInitialized) OR logged out
   refreshToken: null,
   role: null,
   user: null,
@@ -42,6 +42,7 @@ export const authSlice = createSlice({
       if (action.payload?.role) {
         state.role = action.payload.role;
       }
+      state.isInitialized = true;
     },
 
     // Pure logout action resetting auth state to unauthenticated

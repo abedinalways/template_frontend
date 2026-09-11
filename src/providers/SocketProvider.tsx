@@ -21,7 +21,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !token || typeof token !== "string") {
+    if (!isAuthenticated || !token) {
       socketClient.disconnect();
       return;
     }
@@ -45,8 +45,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isAuthenticated, token]);
 
-  const activeSocket =
-    isAuthenticated && typeof token === "string" ? socketClient.getSocket() : null;
+  const activeSocket = isAuthenticated && token ? socketClient.getSocket() : null;
 
   return (
     <SocketContext.Provider value={{ socket: activeSocket, isConnected }}>
