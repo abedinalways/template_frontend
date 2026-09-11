@@ -2,6 +2,7 @@ import { tokenService } from "./tokenService";
 import { AppDispatch } from "@/redux/store";
 import { logOut, setCredentials } from "@/redux/features/auth/authSlice";
 import { ENV } from "@/constants/env";
+import { API_ENDPOINTS } from "@/constants/routes";
 import { IApiResponse, IRefreshTokenResponse } from "@/types";
 
 const REFRESH_BUFFER_MS = 60 * 1000; // Trigger refresh 60s before actual expiry
@@ -20,7 +21,7 @@ export async function executeSilentRefresh(
   }
 
   try {
-    const res = await fetch(`${ENV.API_URL}/auth/refresh-token`, {
+    const res = await fetch(`${ENV.API_URL}${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),

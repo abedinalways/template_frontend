@@ -1,5 +1,6 @@
 import { baseApi } from "@/redux/api/baseApi";
 import { TAG_TYPES } from "@/redux/api/tagTypes";
+import { API_ENDPOINTS } from "@/constants/routes";
 import {
   IApiResponse,
   ILoginResponse,
@@ -14,7 +15,7 @@ export const authApi = baseApi.injectEndpoints({
       { email: string; password: string }
     >({
       query: (credentials) => ({
-        url: "/auth/login",
+        url: API_ENDPOINTS.AUTH.LOGIN,
         method: "POST",
         body: credentials,
       }),
@@ -26,7 +27,7 @@ export const authApi = baseApi.injectEndpoints({
       { name: string; email: string; password: string; role?: string }
     >({
       query: (data) => ({
-        url: "/auth/register",
+        url: API_ENDPOINTS.AUTH.REGISTER,
         method: "POST",
         body: data,
       }),
@@ -34,8 +35,8 @@ export const authApi = baseApi.injectEndpoints({
 
     getMe: builder.query<IApiResponse<IUser>, void>({
       query: () => ({
-        url: "/auth/me",
-        method: "GET",
+        url: API_ENDPOINTS.AUTH.ME,
+        // method: "GET" — RTK Query-এর default, explicitly দেওয়া দরকার নেই
       }),
       providesTags: [TAG_TYPES.User],
     }),
@@ -45,7 +46,7 @@ export const authApi = baseApi.injectEndpoints({
       { refreshToken: string }
     >({
       query: (body) => ({
-        url: "/auth/refresh-token",
+        url: API_ENDPOINTS.AUTH.REFRESH_TOKEN,
         method: "POST",
         body,
       }),
@@ -53,7 +54,7 @@ export const authApi = baseApi.injectEndpoints({
 
     logout: builder.mutation<IApiResponse<null>, void>({
       query: () => ({
-        url: "/auth/logout",
+        url: API_ENDPOINTS.AUTH.LOGOUT,
         method: "POST",
       }),
       invalidatesTags: [TAG_TYPES.Auth, TAG_TYPES.User],

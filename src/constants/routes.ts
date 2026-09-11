@@ -28,3 +28,13 @@ export const USER_ROLES = {
   ADMIN: "admin",
   SUPER_ADMIN: "super_admin",
 } as const;
+
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    LOGOUT: "/auth/logout",
+    ME: "/auth/me",
+    REFRESH_TOKEN: "/auth/refresh-token",
+  },
+} as const;
