@@ -11,7 +11,7 @@ export interface IUser {
 }
 
 export interface IAuthState {
-  token: string | null | false; // false = loading / uninitialized, null = unauthenticated, string = authenticated
+  token: string | null; // null = logged out OR not yet checked; use `isInitialized` to distinguish
   refreshToken: string | null;
   role: UserRole | null;
   user: IUser | null;

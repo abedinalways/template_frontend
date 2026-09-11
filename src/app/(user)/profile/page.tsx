@@ -6,6 +6,7 @@ import {
   selectCurrentRole,
   selectCurrentUser,
 } from "@/redux/features/auth/authSelectors";
+import { USER_ROLES } from "@/constants/routes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Calendar } from "lucide-react";
@@ -40,7 +41,7 @@ export default function ProfilePage() {
                 <Shield className="h-3.5 w-3.5 text-blue-400" />
                 Role Permission
               </div>
-              <Badge variant={role === "admin" ? "warning" : "default"}>
+              <Badge variant={role === USER_ROLES.ADMIN ? "warning" : "default"}>
                 {role || "user"}
               </Badge>
             </div>

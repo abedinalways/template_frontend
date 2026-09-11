@@ -33,27 +33,35 @@ export const tokenService = {
   },
 
   setTokens(accessToken: string, refreshToken?: string, user?: IUser): void {
-    // 7 days expiration for access cookie default, or session
+    // Cookie expiry টা JWT-এর নিজের exp থেকে নেওয়া হচ্ছে।
+    // এতে cookie আর JWT একসাথে expire করে — hardcoded days দিলে
+    // token বাতিল হলেও cookie browser-এ পড়ে থাকতো।
+    const accessTokenExpiryMs = this.getTokenExpiryMs(accessToken);
+    const accessTokenExpiry = accessTokenExpiryMs
+      ? new Date(accessTokenExpiryMs)
+      : undefined; // undefined = session cookie (browser বন্ধ হলে মুছে যায়)
+
     Cookies.set(AUTH_COOKIE_KEYS.ACCESS_TOKEN, accessToken, {
       ...COOKIE_OPTIONS,
-      expires: 7,
+      expires: accessTokenExpiry,
     });
 
     if (refreshToken) {
       Cookies.set(AUTH_COOKIE_KEYS.REFRESH_TOKEN, refreshToken, {
         ...COOKIE_OPTIONS,
-        expires: 30, // 30 days
+        expires: 30, // 30 days — server-side refresh token lifetime এর সাথে মিলিয়ে রাখো
       });
     }
 
     if (user) {
+      // Role ও user info cookie, access token-এর মতো same expiry
       Cookies.set(AUTH_COOKIE_KEYS.ROLE, user.role, {
         ...COOKIE_OPTIONS,
-        expires: 7,
+        expires: accessTokenExpiry,
       });
       Cookies.set(AUTH_COOKIE_KEYS.USER_INFO, JSON.stringify(user), {
         ...COOKIE_OPTIONS,
-        expires: 7,
+        expires: accessTokenExpiry,
       });
     }
   },
@@ -81,7 +89,9 @@ export const tokenService = {
 
   isTokenExpired(token: string, bufferSeconds = 30): boolean {
     const expiryMs = this.getTokenExpiryMs(token);
-    if (!expiryMs) return false;
+    // exp না থাকলে safe default হিসেবে expired ধরা হচ্ছে —
+    // exp-less token কে valid ধরে নেওয়া security risk।
+    if (!expiryMs) return true;
     return Date.now() >= expiryMs - bufferSeconds * 1000;
   },
 };

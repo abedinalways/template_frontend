@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/features/auth/authSlice";
 import { tokenService } from "@/services/auth/tokenService";
-import { ROUTES } from "@/constants/routes";
+import { ROUTES, USER_ROLES } from "@/constants/routes";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import { toast } from "sonner";
 import { Lock, ShieldCheck, UserCheck, ArrowRight } from "lucide-react";
 import { IUser, UserRole } from "@/types/auth";
 
-export default function LoginPage() {
+// --- Inner component that consumes useSearchParams (must be inside Suspense) ---
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
@@ -24,12 +25,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Helper function to simulate/execute login and set tokens via tokenService + Redux
+  // Prevents calling setState after the component unmounts (e.g. fast navigation)
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  /**
+   * Simulates a login flow for template demo purposes.
+   * In a real app, replace the body with: const result = await loginMutation(credentials);
+   */
   const executeLogin = (userPayload: IUser, role: UserRole) => {
     setIsLoading(true);
 
-    // Mock realistic JWT token for template demonstration
-    // Encodes a valid JWT expiration time 1 hour into the future
+    // Mock realistic JWT token for template demonstration.
+    // Encodes a valid JWT expiration time 1 hour into the future.
     const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = btoa(
       JSON.stringify({
@@ -43,7 +55,11 @@ export default function LoginPage() {
     const mockAccessToken = `${header}.${payload}.mockSignatureSignature`;
     const mockRefreshToken = `refresh_${Math.random().toString(36).substring(2)}`;
 
+    // Simulate async round-trip. Guard with isMountedRef to prevent
+    // setState calls on an already-unmounted component.
     setTimeout(() => {
+      if (!isMountedRef.current) return;
+
       // 1. Decoupled side-effect: save to cookies securely
       tokenService.setTokens(mockAccessToken, mockRefreshToken, userPayload);
 
@@ -60,7 +76,7 @@ export default function LoginPage() {
       setIsLoading(false);
       toast.success(`Logged in as ${userPayload.name} (${role})`);
 
-      if (role === "admin" || role === "super_admin") {
+      if (role === USER_ROLES.ADMIN || role === USER_ROLES.SUPER_ADMIN) {
         router.push(ROUTES.ADMIN_DASHBOARD);
       } else {
         router.push(redirectPath);
@@ -75,7 +91,7 @@ export default function LoginPage() {
       return;
     }
 
-    const role: UserRole = email.includes("admin") ? "admin" : "user";
+    const role: UserRole = email.includes("admin") ? USER_ROLES.ADMIN : USER_ROLES.USER;
     const userPayload: IUser = {
       _id: "usr_" + Math.random().toString(36).substring(2, 9),
       name: email.split("@")[0].toUpperCase(),
@@ -92,9 +108,9 @@ export default function LoginPage() {
         _id: "usr_user_123",
         name: "Standard User",
         email: "user@example.com",
-        role: "user",
+        role: USER_ROLES.USER,
       },
-      "user"
+      USER_ROLES.USER
     );
   };
 
@@ -104,9 +120,9 @@ export default function LoginPage() {
         _id: "usr_admin_999",
         name: "Administrator",
         email: "admin@example.com",
-        role: "admin",
+        role: USER_ROLES.ADMIN,
       },
-      "admin"
+      USER_ROLES.ADMIN
     );
   };
 
@@ -206,5 +222,14 @@ export default function LoginPage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+// --- Page shell wraps LoginForm in Suspense so useSearchParams is safe ---
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 export interface InputProps
@@ -9,7 +10,10 @@ export interface InputProps
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, error, id, ...props }, ref) => {
-    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
+    // useId() produces a unique, stable ID per component instance,
+    // preventing duplicate IDs when multiple inputs share the same label.
+    const generatedId = useId();
+    const inputId = id || (label ? generatedId : undefined);
 
     return (
       <div className="w-full flex flex-col gap-1.5">

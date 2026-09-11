@@ -17,6 +17,10 @@ export const notificationSlice = createSlice({
   reducers: {
     addNotification: (state, action: PayloadAction<INotificationEvent>) => {
       state.notifications.unshift(action.payload);
+      // Cap at 50 to prevent unbounded memory growth in long-running sessions
+      if (state.notifications.length > 50) {
+        state.notifications = state.notifications.slice(0, 50);
+      }
       state.unreadCount += 1;
     },
     markAllAsRead: (state) => {
