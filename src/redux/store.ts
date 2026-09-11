@@ -13,8 +13,10 @@ export const makeStore = () => {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {
-          // Ignore false value in auth token when loading
+          // Ignore token field during setCredentials dispatch to avoid
+          // false-positive serializable warnings on auth state initialization
           ignoredActions: ["auth/setCredentials"],
+          ignoredPaths: ["auth.token"],
         },
       }).concat(baseApi.middleware),
     devTools: process.env.NODE_ENV !== "production",

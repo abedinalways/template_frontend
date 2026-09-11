@@ -58,11 +58,15 @@ class SocketClientManager {
     if (!this.socket) return;
 
     this.socket.on("connect", () => {
-      console.log(`[Socket] Connected successfully with ID: ${this.socket?.id}`);
+      if (ENV.IS_DEVELOPMENT) {
+        console.log(`[Socket] Connected successfully with ID: ${this.socket?.id}`);
+      }
     });
 
     this.socket.on("disconnect", (reason) => {
-      console.warn(`[Socket] Disconnected: ${reason}`);
+      if (ENV.IS_DEVELOPMENT) {
+        console.warn(`[Socket] Disconnected: ${reason}`);
+      }
       if (!this.isExplicitlyDisconnected && reason === "io server disconnect") {
         // the server forcefully disconnected the socket, try manual reconnect
         this.socket?.connect();
@@ -70,7 +74,9 @@ class SocketClientManager {
     });
 
     this.socket.on("connect_error", (error) => {
-      console.error("[Socket] Connection error:", error.message);
+      if (ENV.IS_DEVELOPMENT) {
+        console.error("[Socket] Connection error:", error.message);
+      }
     });
   }
 }

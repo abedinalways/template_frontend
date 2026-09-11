@@ -11,6 +11,10 @@ import {
   addNotification,
   markAllAsRead,
 } from "@/redux/features/notification/notificationSlice";
+import {
+  selectNotifications,
+  selectUnreadCount,
+} from "@/redux/features/notification/notificationSelectors";
 import { useSocketContext } from "@/providers/SocketProvider";
 import { tokenService } from "@/services/auth/tokenService";
 import { executeSilentRefresh } from "@/services/auth/silentRefresh";
@@ -33,8 +37,8 @@ export default function UserDashboardPage() {
   const user = useAppSelector(selectCurrentUser);
   const role = useAppSelector(selectCurrentRole);
   const token = useAppSelector(selectCurrentToken);
-  const notifications = useAppSelector((state) => state.notification.notifications);
-  const unreadCount = useAppSelector((state) => state.notification.unreadCount);
+  const notifications = useAppSelector(selectNotifications);
+  const unreadCount = useAppSelector(selectUnreadCount);
 
   const { isConnected } = useSocketContext();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -42,7 +46,7 @@ export default function UserDashboardPage() {
 
   // Live timer calculating seconds until access token expiry
   useEffect(() => {
-    if (!token || typeof token !== "string") return;
+    if (!token) return;
 
     const checkExp = () => {
       const expMs = tokenService.getTokenExpiryMs(token);

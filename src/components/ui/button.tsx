@@ -47,13 +47,21 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
+        aria-busy={isLoading}
+        aria-disabled={disabled || isLoading}
+        className={cn(baseStyles, variants[variant], sizes[size], "relative", className)}
         {...props}
       >
         {isLoading && (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          </span>
         )}
-        {children}
+        {/* Children are visually hidden during loading to prevent layout shift,
+            but kept in DOM to preserve button width */}
+        <span className={cn("inline-flex items-center gap-[inherit]", isLoading && "invisible")}>
+          {children}
+        </span>
       </button>
     );
   }
